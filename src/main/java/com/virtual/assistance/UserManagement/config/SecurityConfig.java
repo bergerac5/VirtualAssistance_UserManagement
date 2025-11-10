@@ -41,8 +41,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/api/users/**").permitAll()
                         .requestMatchers("/api/roles/**").hasRole("ADMIN")
-                        .requestMatchers("/api/assistant/**").hasRole("Virtual Assistant")
-                        .requestMatchers("/api/client/**").hasRole("Client")
+                        .requestMatchers("/api/assistant/**").hasRole("VIRTUAL ASSISTANT")
+                        .requestMatchers("/api/client/**").hasRole("CLIENT")
                         .anyRequest().authenticated())
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
