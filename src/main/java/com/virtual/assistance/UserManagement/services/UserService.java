@@ -18,6 +18,8 @@ import com.virtual.assistance.UserManagement.models.UserInfo;
 import com.virtual.assistance.UserManagement.repositories.UserRepository;
 import com.virtual.assistance.UserManagement.response.ApiResponse;
 
+import jakarta.mail.MessagingException;
+
 @Service
 @Transactional
 public class UserService {
@@ -28,6 +30,9 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private EmailService emailService;
+
     // Convert UserInfo to UserResponse
     private UserResponse toUserResponse(UserInfo user) {
         Role role = user.getRole();
@@ -36,14 +41,19 @@ public class UserService {
     }
 
     // CREATE user
-    public ApiResponse<UserResponse> createUser(UserInfo userInfo) {
+    public ApiResponse<UserResponse> createUser(UserInfo userInfo) throws MessagingException {
         if (userRepository.findByEmail(userInfo.getEmail()).isPresent()) {
             throw new ConflictException("User with email '" + userInfo.getEmail() + "' already exists!");
         }
 
         userInfo.setPassword(passwordEncoder.encode(userInfo.getPassword()));
-
         UserInfo savedUser = userRepository.save(userInfo);
+
+        // Build and send HTML email
+        String subject = "Welcome to Virtual Assistance";
+        String htmlContent = emailService.buildWelcomeEmail(savedUser.getName(), savedUser.getEmail());
+        emailService.sendHtmlEmail(savedUser.getEmail(), subject, htmlContent);
+
         return ApiResponse.success("User created successfully!", toUserResponse(savedUser));
     }
 

@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -22,6 +23,9 @@ import com.virtual.assistance.UserManagement.repositories.RoleRepo;
 import com.virtual.assistance.UserManagement.response.ApiResponse;
 import com.virtual.assistance.UserManagement.services.UserService;
 
+import jakarta.mail.MessagingException;
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -33,7 +37,15 @@ public class UserController {
     private RoleRepo roleRepo;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<?>> createUser(@RequestBody UserRequest request) {
+    public ResponseEntity<ApiResponse<?>> createUser(
+            @Valid @RequestBody UserRequest request, BindingResult bindingResult) {
+
+        if (bindingResult.hasErrors()) {
+            // Get the first validation error
+            String errorMessage = bindingResult.getAllErrors().get(0).getDefaultMessage();
+            return ResponseEntity.badRequest().body(ApiResponse.error(errorMessage));
+        }
+
         try {
             UserInfo user = new UserInfo();
             user.setName(request.getName());
@@ -49,6 +61,9 @@ public class UserController {
 
         } catch (NotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(e.getMessage()));
+        } catch (MessagingException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Failed to send welcome email."));
         }
     }
 
