@@ -1,9 +1,0 @@
-services:
-  postgres:
-    image: 'postgres:latest'
-    environment:
-      - 'POSTGRES_DB=VirtualAssistance_UserServiceDb'
-      - 'POSTGRES_PASSWORD=kigali45'
-      - 'POSTGRES_USER=postgres'
-    ports:
-      - '5432'
